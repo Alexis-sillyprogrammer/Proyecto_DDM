@@ -1,20 +1,110 @@
 package com.example.proyecto_ddm
 
 import android.os.Bundle
-import androidx.activity.enableEdgeToEdge
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.forEach
+import androidx.fragment.app.Fragment
+import com.example.proyecto_ddm.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
+
+    private lateinit var binding: ActivityMainBinding
+    private var isAdmin: Boolean = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        setContentView(R.layout.activity_main)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, 0)
             insets
         }
+
+        isAdmin = intent.getBooleanExtra("IS_ADMIN", true)
+
+        if (isAdmin) setupAdminNav()
+        else setupClientNav()
+    }
+
+    private fun setupAdminNav() {
+        binding.bottomAppBar.visibility = View.VISIBLE
+        binding.fab.visibility = View.VISIBLE
+        binding.bottomNavigationClient.visibility = View.GONE
+
+        binding.bottomNavigationLeft.background = null
+        binding.bottomNavigationRight.background = null
+
+        replaceFragment(CatalogFragment())
+        binding.bottomNavigationLeft.selectedItemId = R.id.nav_catalog
+
+        binding.bottomNavigationRight.menu.setGroupCheckable(0, true, false)
+        binding.bottomNavigationRight.menu.forEach { it.isChecked = false }
+        binding.bottomNavigationRight.menu.setGroupCheckable(0, true, true)
+
+        binding.bottomNavigationLeft.setOnItemSelectedListener { item ->
+            clearRightSelection()
+            when (item.itemId) {
+                R.id.nav_catalog -> replaceFragment(CatalogFragment())
+                R.id.nav_cart -> replaceFragment(CartFragment())
+            }
+            true
+        }
+
+        binding.bottomNavigationRight.setOnItemSelectedListener { item ->
+            clearLeftSelection()
+            when (item.itemId) {
+                R.id.nav_purchases -> replaceFragment(PurchasesFragment())
+                R.id.nav_profile -> replaceFragment(ProfileFragment())
+            }
+            true
+        }
+
+        binding.fab.setOnClickListener {
+            clearLeftSelection()
+            clearRightSelection()
+            replaceFragment(AddProductFragment())
+        }
+    }
+
+    private fun setupClientNav() {
+        binding.bottomNavigationClient.visibility = View.VISIBLE
+        binding.bottomAppBar.visibility = View.GONE
+        binding.fab.visibility = View.GONE
+
+        replaceFragment(CatalogFragment())
+        binding.bottomNavigationClient.selectedItemId = R.id.nav_catalog
+
+        binding.bottomNavigationClient.setOnItemSelectedListener { item ->
+            when (item.itemId) {
+                R.id.nav_catalog -> replaceFragment(CatalogFragment())
+                R.id.nav_cart -> replaceFragment(CartFragment())
+                R.id.nav_purchases -> replaceFragment(PurchasesFragment())
+                R.id.nav_profile -> replaceFragment(ProfileFragment())
+            }
+            true
+        }
+    }
+
+    private fun clearRightSelection() {
+        binding.bottomNavigationRight.menu.setGroupCheckable(0, true, false)
+        binding.bottomNavigationRight.menu.forEach { it.isChecked = false }
+        binding.bottomNavigationRight.menu.setGroupCheckable(0, true, true)
+    }
+
+    private fun clearLeftSelection() {
+        binding.bottomNavigationLeft.menu.setGroupCheckable(0, true, false)
+        binding.bottomNavigationLeft.menu.forEach { it.isChecked = false }
+        binding.bottomNavigationLeft.menu.setGroupCheckable(0, true, true)
+    }
+
+    private fun replaceFragment(fragment: Fragment) {
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.frame_layout, fragment)
+            .commit()
     }
 }

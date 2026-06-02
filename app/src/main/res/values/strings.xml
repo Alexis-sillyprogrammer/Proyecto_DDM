@@ -1,3 +1,40 @@
 <resources>
-    <string name="app_name">Proyecto_DDM</string>
+    <string name="app_name">GameVault</string>
+
+    <string name="nav_catalog">Catálogo</string>
+    <string name="nav_cart">Carrito</string>
+    <string name="nav_purchases">Compras</string>
+    <string name="nav_profile">Perfil</string>
+    <string name="nav_add_product">Agregar</string>
+
+    <string name="role_admin">Administrador</string>
+    <string name="role_client">Cliente</string>
+
+    <string name="section_general">Información general</string>
+    <string name="section_price">Precio e inventario</string>
+
+    <string name="hint_name">Nombre del producto</string>
+    <string name="hint_description">Descripción del producto</string>
+    <string name="hint_price">0.00</string>
+    <string name="hint_mxn">Precio en pesos mexicanos (MXN)</string>
+
+    <string name="label_category">Categoría</string>
+    <string name="label_stock">Stock disponible</string>
+
+    <string name="cat_game">Videojuego</string>
+    <string name="cat_console">Consola</string>
+    <string name="cat_accessory">Accesorio</string>
+
+    <string name="btn_save">Guardar</string>
+    <string name="btn_cancel">Cancelar</string>
+
+    <string name="label_subtotal">Subtotal</string>
+    <string name="label_iva">IVA (16%)</string>
+    <string name="label_total">Total</string>
+    <string name="btn_process">Procesar pedido</string>
+    <string name="btn_delete_cart">Eliminar todo</string>
+
+    <string name="currency_format">$%1$,.2f</string>
+    <string name="price_per_unit_format">$%1$,.2f c/u</string>
+    <string name="subtotal_format">$%1$,.2f</string>
 </resources>

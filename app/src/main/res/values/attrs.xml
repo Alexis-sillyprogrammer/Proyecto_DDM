@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="AlphabeticalAvatarView">
+        <attr name="av_name" format="string" />
+        <attr name="av_textColor" format="color" />
+        <attr name="av_backgroundColor" format="color" />
+        <attr name="av_shape" format="enum">
+            <enum name="circle" value="0" />
+            <enum name="rounded_square" value="1" />
+        </attr>
+    </declare-styleable>
+</resources>
