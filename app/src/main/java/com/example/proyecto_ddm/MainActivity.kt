@@ -2,12 +2,18 @@ package com.example.proyecto_ddm
 
 import android.os.Bundle
 import android.view.View
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.forEach
 import androidx.fragment.app.Fragment
 import com.example.proyecto_ddm.databinding.ActivityMainBinding
+import com.example.proyecto_ddm.fragments.AddProductFragment
+import com.example.proyecto_ddm.fragments.CartFragment
+import com.example.proyecto_ddm.fragments.CatalogFragment
+import com.example.proyecto_ddm.fragments.ProfileFragment
+import com.example.proyecto_ddm.fragments.PurchasesFragment
 
 class MainActivity : AppCompatActivity() {
 
@@ -29,6 +35,47 @@ class MainActivity : AppCompatActivity() {
 
         if (isAdmin) setupAdminNav()
         else setupClientNav()
+
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                if(supportFragmentManager.backStackEntryCount > 0) {
+                    supportFragmentManager.popBackStack()
+                    showNavBar()
+                } else {
+                    isEnabled = false
+                    onBackPressedDispatcher.onBackPressed()
+                }
+            }
+        })
+    }
+
+    fun hideNavbar() {
+        binding.bottomAppBar.visibility = View.GONE
+        binding.fab.visibility = View.GONE
+        binding.bottomNavigationClient.visibility = View.GONE
+    }
+
+    fun showNavBar() {
+        if (isAdmin) {
+            binding.bottomAppBar.visibility = View.VISIBLE
+            binding.fab.visibility = View.VISIBLE
+        } else {
+            binding.bottomNavigationClient.visibility = View.VISIBLE
+        }
+    }
+
+    fun replaceFragment(fragment: Fragment) {
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.frame_layout, fragment)
+            .commit()
+    }
+
+    fun navigateToDetail(fragment: Fragment) {
+        hideNavbar()
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.frame_layout, fragment)
+            .addToBackStack(null)
+            .commit()
     }
 
     private fun setupAdminNav() {
@@ -100,11 +147,5 @@ class MainActivity : AppCompatActivity() {
         binding.bottomNavigationLeft.menu.setGroupCheckable(0, true, false)
         binding.bottomNavigationLeft.menu.forEach { it.isChecked = false }
         binding.bottomNavigationLeft.menu.setGroupCheckable(0, true, true)
-    }
-
-    private fun replaceFragment(fragment: Fragment) {
-        supportFragmentManager.beginTransaction()
-            .replace(R.id.frame_layout, fragment)
-            .commit()
     }
 }

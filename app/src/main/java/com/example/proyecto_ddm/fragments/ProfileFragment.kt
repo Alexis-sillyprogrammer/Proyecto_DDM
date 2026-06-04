@@ -1,10 +1,12 @@
-package com.example.proyecto_ddm
+package com.example.proyecto_ddm.fragments
 
 import android.os.Bundle
 import android.view.View
 import android.widget.EditText
 import android.widget.TextView
 import androidx.fragment.app.Fragment
+import com.example.proyecto_ddm.utils.AlphabeticalAvatarView
+import com.example.proyecto_ddm.R
 
 class ProfileFragment : Fragment(R.layout.fragment_profile) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

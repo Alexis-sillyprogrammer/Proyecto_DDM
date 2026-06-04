@@ -1,4 +1,4 @@
-package com.example.proyecto_ddm
+package com.example.proyecto_ddm.fragments
 
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
@@ -8,14 +8,17 @@ import android.view.View
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.proyecto_ddm.R
+import com.example.proyecto_ddm.adapters.CartAdapter
 import com.example.proyecto_ddm.databinding.FragmentCartBinding
 import com.example.proyecto_ddm.entities.CartItem
 import com.example.proyecto_ddm.entities.Category
 import com.example.proyecto_ddm.entities.Product
+import com.google.android.material.snackbar.Snackbar
 import java.util.Locale
 
 class CartFragment : Fragment(R.layout.fragment_cart) {
-    private lateinit var adapter: CartAdapater
+    private lateinit var adapter: CartAdapter
     private var _binding: FragmentCartBinding? = null
     private val binding get() = _binding!!
     private val exampleItems = mutableListOf(
@@ -61,7 +64,7 @@ class CartFragment : Fragment(R.layout.fragment_cart) {
     }
 
     private fun setupRecyclerView() {
-        adapter = CartAdapater(
+        adapter = CartAdapter(
             items = exampleItems,
             onQuantityChanged = { _, _ -> updateTotals() },
             onDeleteItem = { item -> confirmDeleteItem(item) }
@@ -91,7 +94,7 @@ class CartFragment : Fragment(R.layout.fragment_cart) {
     private fun showConfirmationAlert() {
         AlertDialog.Builder(requireContext())
             .setTitle("Confirmar pedido")
-            .setMessage("¿Estás seguro de que deseas confirmar tu pedido?\\nA continuación elige la fecha y hora de recogida.")
+            .setMessage("¿Estás seguro de que deseas confirmar tu pedido? A continuación elige la fecha y hora de recogida.")
             .setPositiveButton("Sí, continuar") { dialog, _ ->
                 dialog.dismiss()
                 showDatePicker()
@@ -218,8 +221,8 @@ class CartFragment : Fragment(R.layout.fragment_cart) {
     }
 
     private fun showSnackbar(msg: String) {
-        com.google.android.material.snackbar.Snackbar
-            .make(binding.root, msg, com.google.android.material.snackbar.Snackbar.LENGTH_SHORT)
+        Snackbar
+            .make(binding.root, msg, Snackbar.LENGTH_SHORT)
             .show()
     }
 

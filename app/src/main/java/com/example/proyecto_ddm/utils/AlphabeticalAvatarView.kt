@@ -1,4 +1,4 @@
-package com.example.proyecto_ddm
+package com.example.proyecto_ddm.utils
 
 import android.content.Context
 import android.graphics.Canvas
@@ -9,6 +9,7 @@ import android.graphics.RectF
 import android.graphics.Typeface
 import android.util.AttributeSet
 import android.view.View
+import com.example.proyecto_ddm.R
 import kotlin.math.abs
 import kotlin.math.min
 

@@ -15,7 +15,7 @@
 
     <string name="hint_name">Nombre del producto</string>
     <string name="hint_description">Descripción del producto</string>
-    <string name="hint_price">0.00</string>
+    <string name="hint_price">Precio</string>
     <string name="hint_mxn">Precio en pesos mexicanos (MXN)</string>
 
     <string name="label_category">Categoría</string>
@@ -37,4 +37,11 @@
     <string name="currency_format">$%1$,.2f</string>
     <string name="price_per_unit_format">$%1$,.2f c/u</string>
     <string name="subtotal_format">$%1$,.2f</string>
+
+    <string name="purchases_title">Mis pedidos</string>
+    <string name="purchases_empty">No tienes pedidos aún</string>
+    <string name="filter_all">Todos</string>
+    <string name="filter_delivered">Entregados</string>
+    <string name="filter_in_progress">En proceso</string>
+    <string name="filter_pending">Pendientes</string>
 </resources>

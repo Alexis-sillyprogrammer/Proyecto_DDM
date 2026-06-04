@@ -1,21 +1,39 @@
-package com.example.proyecto_ddm
+package com.example.proyecto_ddm.fragments
 
+import android.net.Uri
 import android.os.Bundle
 import android.view.View
+import android.app.Activity
+import android.content.Intent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
+import com.example.proyecto_ddm.R
 import com.example.proyecto_ddm.databinding.FragmentAddProductBinding
 import com.google.android.material.snackbar.Snackbar
+import java.io.File
+import java.io.FileOutputStream
 
 class AddProductFragment : Fragment(R.layout.fragment_add_product) {
     private var _binding: FragmentAddProductBinding? = null
     private val binding get() = _binding!!
     private var stockActual = 1
+    private var imageUri: Uri? = null
+    private var imagePath: String? = null
+    private val imagePickerLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if(result.resultCode == Activity.RESULT_OK)
+                result.data?.data?.let { uri ->
+                    imageUri = uri
+                    showPreview(uri)
+                }
+        }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         _binding = FragmentAddProductBinding.bind(view)
 
         setupStock()
+        setupImagePicker()
         setupButtons()
     }
 
@@ -34,6 +52,58 @@ class AddProductFragment : Fragment(R.layout.fragment_add_product) {
                 stockActual--
                 binding.tvStock.text = stockActual.toString()
             }
+        }
+    }
+
+    private fun setupImagePicker() {
+        binding.flImagePicker.setOnClickListener {
+            openGallery()
+        }
+
+        binding.btnRemoveImage.setOnClickListener {
+            cleanImage()
+        }
+    }
+
+    private fun openGallery() {
+        val intent = Intent(Intent.ACTION_PICK).apply {
+            type = "image/*"
+        }
+        
+        imagePickerLauncher.launch(intent)
+    }
+
+    private fun showPreview(uri: Uri) {
+        binding.ivImagePreview.setImageURI(uri)
+        binding.ivImagePreview.visibility = View.VISIBLE
+        binding.llImageEmpty.visibility = View.GONE
+        binding.btnRemoveImage.visibility = View.VISIBLE
+    }
+
+    private fun cleanImage() {
+        imagePath = null
+        imagePath = null
+        binding.ivImagePreview.setImageURI(null)
+        binding.ivImagePreview.visibility = View.GONE
+        binding.llImageEmpty.visibility = View.VISIBLE
+        binding.btnRemoveImage.visibility = View.GONE
+    }
+
+    private fun copyImageAtStorage(uri: Uri): String? {
+        return try {
+            val inputStream = requireContext().contentResolver.openInputStream(uri) ?: return null
+
+            val dir = File(requireContext().filesDir, "product_images").also { it.mkdirs() }
+            val file = File(dir, "img_${System.currentTimeMillis()}.jpg")
+
+            FileOutputStream(file).use { out ->
+                inputStream.copyTo(out)
+            }
+            inputStream.close()
+
+            file.absolutePath
+        } catch (e: Exception) {
+            null
         }
     }
 
@@ -127,8 +197,12 @@ class AddProductFragment : Fragment(R.layout.fragment_add_product) {
         val name = binding.etName.text.toString().trim()
         val description = binding.etDescription.text.toString().trim()
         val price = binding.etPrice.text.toString().trim().toDouble()
+        val category = getCategory()
+
+        imagePath = imageUri?.let { copyImageAtStorage(it) }
 
         showSnackbar("Producto \"$name\" guardado correctamente")
+        cleanForm()
     }
 
     private fun getCategory(): String {
@@ -149,6 +223,7 @@ class AddProductFragment : Fragment(R.layout.fragment_add_product) {
         binding.chipGroupCategory.check(R.id.chipGame)
         stockActual = 1
         binding.tvStock.text = "1"
+        cleanImage()
     }
 
     private fun showSnackbar(msg: String) {
