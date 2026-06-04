@@ -69,7 +69,7 @@ class AddProductFragment : Fragment(R.layout.fragment_add_product) {
         val intent = Intent(Intent.ACTION_PICK).apply {
             type = "image/*"
         }
-        
+
         imagePickerLauncher.launch(intent)
     }
 
