@@ -2,4 +2,17 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <color name="gv_primary">#1A1A2E</color>
+    <color name="gv_surface">#16213E</color>
+    <color name="gv_accent">#E94560</color>
+    <color name="gv_accent_variant">#C73652</color>
+    <color name="gv_highlight">#0F3460</color>
+    <color name="gv_on_primary">#FFFFFFFF</color>
+    <color name="gv_on_surface">#FFE0E0E0</color>
+    <color name="gv_bottom_bar">#FF0D0D1A</color>
+    <color name="gv_icon_inactive">#FF6B7280</color>
+    <color name="gv_fab_bg">#FFE94560</color>
+    <color name="gv_status_delivered">#5DCAA5</color>
+    <color name="gv_status_in_progress">#EF9F27</color>
 </resources>

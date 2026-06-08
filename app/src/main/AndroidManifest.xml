@@ -11,8 +11,9 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Proyecto_DDM">
+
         <activity
-            android:name=".MainActivity"
+            android:name=".AuthActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -20,10 +21,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".LoginActivity" />
-        <activity android:name=".RegisterActivity" />
-        <activity android:name=".FPasswordActivity" />
-        <activity android:name=".RPasswordActivity" />
+
+        <activity android:name="MainActivity"
+            android:exported="false" />
+
     </application>
 
 </manifest>
