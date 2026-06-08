@@ -1,0 +1,47 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Base.Theme.Proyecto_DDM" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/gv_accent</item>
+        <item name="colorPrimaryVariant">@color/gv_accent_variant</item>
+        <item name="colorOnPrimary">@color/gv_on_primary</item>
+        <item name="colorSecondary">@color/gv_highlight</item>
+        <item name="colorOnSecondary">@color/gv_on_primary</item>
+        <item name="colorSurface">@color/gv_surface</item>
+        <item name="colorOnSurface">@color/gv_on_surface</item>
+        <item name="android:colorBackground">@color/gv_primary</item>
+        <item name="android:statusBarColor">@color/gv_primary</item>
+        <item name="android:navigationBarColor">@color/gv_bottom_bar</item>
+    </style>
+
+    <style name="GvInputLayout" parent="Widget.Material3.TextInputLayout.OutlinedBox">
+        <item name="boxBackgroundColor">@color/gv_highlight</item>
+        <item name="boxStrokeColor">@color/gv_icon_inactive</item>
+        <item name="boxStrokeWidth">0.5dp</item>
+        <item name="hintTextColor">@color/gv_icon_inactive</item>
+        <item name="android:textColorHint">@color/gv_icon_inactive</item>
+        <item name="boxCornerRadiusTopStart">8dp</item>
+        <item name="boxCornerRadiusTopEnd">8dp</item>
+        <item name="boxCornerRadiusBottomStart">8dp</item>
+        <item name="boxCornerRadiusBottomEnd">8dp</item>
+    </style>
+
+    <style name="GvChip" parent="Widget.Material3.Chip.Filter">
+        <item name="chipBackgroundColor">@color/gv_highlight</item>
+        <item name="chipStrokeColor">@color/gv_icon_inactive</item>
+        <item name="chipStrokeWidth">0.5dp</item>
+        <item name="android:textColor">@color/gv_icon_inactive</item>
+        <item name="checkedIconVisible">false</item>
+    </style>
+
+    <style name="GvStockButton" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="backgroundTint">@color/gv_highlight</item>
+        <item name="strokeColor">#14FFFFFF</item>
+        <item name="strokeWidth">0.5dp</item>
+        <item name="android:textColor">@color/gv_on_surface</item>
+        <item name="android:textSize">18sp</item>
+        <item name="cornerRadius">8dp</item>
+        <item name="android:padding">0dp</item>
+    </style>
+
+    <style name="Theme.Proyecto_DDM" parent="Base.Theme.Proyecto_DDM" />
+</resources>
