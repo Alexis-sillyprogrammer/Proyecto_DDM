@@ -24,7 +24,6 @@ class AlphabeticalAvatarView @JvmOverloads constructor(
     private var avatarBgColor: Int = Color.GRAY
     private var letterColor: Int = Color.WHITE
     private var shape: Shape = Shape.CIRCLE
-
     private val bgPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
     private val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.FILL

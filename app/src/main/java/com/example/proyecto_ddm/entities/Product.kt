@@ -1,7 +1,5 @@
 package com.example.proyecto_ddm.entities
 
-import com.example.proyecto_ddm.entities.Category
-
 data class Product (
     val id: Int,
     val name: String,

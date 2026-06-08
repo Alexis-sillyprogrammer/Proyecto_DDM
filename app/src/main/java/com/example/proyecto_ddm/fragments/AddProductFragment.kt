@@ -99,8 +99,8 @@ class AddProductFragment : Fragment(R.layout.fragment_add_product) {
             FileOutputStream(file).use { out ->
                 inputStream.copyTo(out)
             }
-            inputStream.close()
 
+            inputStream.close()
             file.absolutePath
         } catch (e: Exception) {
             null

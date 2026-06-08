@@ -17,14 +17,38 @@
             android:background="@drawable/gradient_background"
             android:orientation="vertical">
 
-            <com.example.proyecto_ddm.utils.AlphabeticalAvatarView
-                android:id="@+id/avatarView"
-                android:layout_width="150dp"
-                android:layout_height="150dp"
+            <FrameLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:layout_marginTop="45dp"
-                android:layout_gravity="center_horizontal"
-                app:av_name="Usuario"
-                app:av_shape="circle" />
+                android:layout_gravity="center_horizontal">
+
+                <com.example.proyecto_ddm.utils.AlphabeticalAvatarView
+                    android:id="@+id/avatarView"
+                    android:layout_width="150dp"
+                    android:layout_height="150dp"
+                    app:av_name="Usuario"
+                    app:av_shape="circle" />
+
+                <ImageView
+                    android:id="@+id/ivProfilePhoto"
+                    android:layout_width="150dp"
+                    android:layout_height="150dp"
+                    android:visibility="gone"
+                    android:scaleType="centerCrop" />
+
+                <ImageView
+                    android:id="@+id/ivAddPhoto"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:src="@drawable/ic_outline_add_photo_24"
+                    android:layout_gravity="bottom|end"
+                    android:background="@drawable/circle_shape"
+                    android:padding="12dp"
+                    android:elevation="4dp"
+                    app:tint="#1A73E8" />
+
+            </FrameLayout>
 
             <TextView
                 android:id="@+id/username"
@@ -255,6 +279,7 @@
     </LinearLayout>
 
     <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnSaveProfile"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="top|right"
