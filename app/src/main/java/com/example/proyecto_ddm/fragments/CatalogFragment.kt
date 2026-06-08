@@ -1,43 +1,79 @@
 package com.example.proyecto_ddm.fragments
 
 import android.os.Bundle
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
+import com.example.proyecto_ddm.MainActivity
 import com.example.proyecto_ddm.R
 import com.example.proyecto_ddm.adapters.ProductAdapter
+import com.example.proyecto_ddm.databinding.FragmentCatalogBinding
+import com.example.proyecto_ddm.models.Category
 import com.example.proyecto_ddm.models.Product
 
-class CatalogFragment : Fragment() {
+class CatalogFragment : Fragment(R.layout.fragment_catalog) {
+    private lateinit var adapter: ProductAdapter
+    private var _binding: FragmentCatalogBinding? = null
+    private val binding get() = _binding!!
 
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        // Inflar el diseño que armamos antes
-        val view = inflater.inflate(R.layout.fragment_catalog, container, false)
+    private val items: List<Product> = buildList {
+        add(Product(
+            1, "The Legend of Zelda",
+            Category(1, "Videojuego"),
+            "Aventura de acción en mundo abierto.",
+            1299f
+        ))
+        add(Product(
+            2, "Control DualSense",
+            Category(3, "Accesorio"),
+            "Control inalámbrico para PS5.",
+            1599f
+        ))
+        add(Product(
+            3, "PlayStation 5",
+            Category(2, "Consola"),
+            "Consola de última generación.",
+            12999f
+        ))
+        add(Product(
+            4, "FIFA 26",
+            Category(1, "Videojuego"),
+            "La nueva entrega del simulador de fútbol.",
+            999f
+        ))
+    }
 
-        // Configurar el RecyclerView
-        val rvProducts = view.findViewById<RecyclerView>(R.id.rvProducts)
-        rvProducts.layoutManager = LinearLayoutManager(requireContext())
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        _binding = FragmentCatalogBinding.bind(view)
 
-        // Crear una lista de prueba para mostrar en el avance
-        val mockProducts = listOf(
-            Product(1, "Consola PlayStation 5", "Consola", 12999.00),
-            Product(2, "Control DualSense", "Accesorio", 1599.00),
-            Product(3, "Nintendo Switch OLED", "Consola", 6999.00),
-            Product(4, "Resident Evil 4 Remake", "Videojuego", 1199.00),
-            Product(5, "New Nintendo 3DS XL", "Consola Retro", 4500.00),
-            Product(6, "The Legend of Zelda: Tears of the Kingdom", "Videojuego", 1399.00)
-        )
+        setupRecyclerView()
+        setupItems(items)
+    }
 
-        // Conectar los datos con el adaptador y la lista
-        val adapter = ProductAdapter(mockProducts)
-        rvProducts.adapter = adapter
+    private fun setupRecyclerView() {
+        adapter = ProductAdapter(mutableListOf()) { product ->
+            val fragment = ProductDetailFragment.fromCatalog(
+                productId = product.id
+            )
+            (requireActivity() as MainActivity).navigateToDetail(fragment)
+        }
 
-        return view
+        binding.rvProducts.apply {
+            layoutManager = LinearLayoutManager(requireContext())
+            adapter = this@CatalogFragment.adapter
+            setHasFixedSize(false)
+        }
+    }
+
+    private fun setupItems(items: List<Product>) {
+        adapter.updateList(items)
+        val empty = items.isEmpty()
+        binding.rvProducts.visibility = if (empty) View.GONE  else View.VISIBLE
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 }

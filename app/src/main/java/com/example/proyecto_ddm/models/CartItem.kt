@@ -1,4 +1,4 @@
-package com.example.proyecto_ddm.entities
+package com.example.proyecto_ddm.models
 
 data class CartItem(
     val product: Product,

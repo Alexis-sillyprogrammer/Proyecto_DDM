@@ -13,7 +13,7 @@ import androidx.core.net.toUri
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.example.proyecto_ddm.R
-import com.example.proyecto_ddm.entities.CartItem
+import com.example.proyecto_ddm.models.CartItem
 import java.util.Locale
 
 class CartAdapter(

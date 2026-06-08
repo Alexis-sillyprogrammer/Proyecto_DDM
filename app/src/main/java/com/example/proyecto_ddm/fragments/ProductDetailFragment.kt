@@ -8,11 +8,11 @@ import androidx.fragment.app.Fragment
 import com.example.proyecto_ddm.MainActivity
 import com.example.proyecto_ddm.R
 import com.example.proyecto_ddm.databinding.FragmentProductDetailBinding
-import com.example.proyecto_ddm.entities.Cart
-import com.example.proyecto_ddm.entities.CartItem
-import com.example.proyecto_ddm.entities.Category
-import com.example.proyecto_ddm.entities.Product
-import com.example.proyecto_ddm.entities.State
+import com.example.proyecto_ddm.models.Cart
+import com.example.proyecto_ddm.models.CartItem
+import com.example.proyecto_ddm.models.Category
+import com.example.proyecto_ddm.models.Product
+import com.example.proyecto_ddm.models.State
 import java.util.Locale
 
 class ProductDetailFragment : Fragment(R.layout.fragment_product_detail) {

@@ -3,18 +3,17 @@ package com.example.proyecto_ddm.fragments
 import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.Fragment
-import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.proyecto_ddm.MainActivity
 import com.example.proyecto_ddm.R
 import com.example.proyecto_ddm.adapters.PurchaseAdapter
 import com.example.proyecto_ddm.databinding.FragmentPurchasesBinding
-import com.example.proyecto_ddm.entities.Cart
-import com.example.proyecto_ddm.entities.State
-import com.example.proyecto_ddm.entities.Category
-import com.example.proyecto_ddm.entities.CartItem
-import com.example.proyecto_ddm.entities.Product
-import com.example.proyecto_ddm.entities.FlatPurchaseItem
+import com.example.proyecto_ddm.models.Cart
+import com.example.proyecto_ddm.models.State
+import com.example.proyecto_ddm.models.Category
+import com.example.proyecto_ddm.models.CartItem
+import com.example.proyecto_ddm.models.Product
+import com.example.proyecto_ddm.models.FlatPurchaseItem
 
 class PurchasesFragment : Fragment(R.layout.fragment_purchases) {
     private lateinit var adapter: PurchaseAdapter

@@ -11,9 +11,9 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.proyecto_ddm.R
 import com.example.proyecto_ddm.adapters.CartAdapter
 import com.example.proyecto_ddm.databinding.FragmentCartBinding
-import com.example.proyecto_ddm.entities.CartItem
-import com.example.proyecto_ddm.entities.Category
-import com.example.proyecto_ddm.entities.Product
+import com.example.proyecto_ddm.models.CartItem
+import com.example.proyecto_ddm.models.Category
+import com.example.proyecto_ddm.models.Product
 import com.google.android.material.snackbar.Snackbar
 import java.util.Locale
 
