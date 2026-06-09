@@ -3,59 +3,38 @@ package com.example.proyecto_ddm.fragments
 import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.proyecto_ddm.MainActivity
 import com.example.proyecto_ddm.R
 import com.example.proyecto_ddm.adapters.ProductAdapter
+import com.example.proyecto_ddm.database.GameVaultRepository
 import com.example.proyecto_ddm.databinding.FragmentCatalogBinding
-import com.example.proyecto_ddm.models.Category
-import com.example.proyecto_ddm.models.Product
+import kotlinx.coroutines.launch
 
 class CatalogFragment : Fragment(R.layout.fragment_catalog) {
-    private lateinit var adapter: ProductAdapter
     private var _binding: FragmentCatalogBinding? = null
     private val binding get() = _binding!!
-
-    private val items: List<Product> = buildList {
-        add(Product(
-            1, "The Legend of Zelda",
-            Category(1, "Videojuego"),
-            "Aventura de acción en mundo abierto.",
-            1299f
-        ))
-        add(Product(
-            2, "Control DualSense",
-            Category(3, "Accesorio"),
-            "Control inalámbrico para PS5.",
-            1599f
-        ))
-        add(Product(
-            3, "PlayStation 5",
-            Category(2, "Consola"),
-            "Consola de última generación.",
-            12999f
-        ))
-        add(Product(
-            4, "FIFA 26",
-            Category(1, "Videojuego"),
-            "La nueva entrega del simulador de fútbol.",
-            999f
-        ))
-    }
+    private lateinit var adapter: ProductAdapter
+    private lateinit var repo: GameVaultRepository
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         _binding = FragmentCatalogBinding.bind(view)
+        repo = GameVaultRepository(requireContext())
 
         setupRecyclerView()
-        setupItems(items)
+        loadProducts()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        loadProducts()
     }
 
     private fun setupRecyclerView() {
         adapter = ProductAdapter(mutableListOf()) { product ->
-            val fragment = ProductDetailFragment.fromCatalog(
-                productId = product.id
-            )
+            val fragment = ProductDetailFragment.fromCatalog(product.id)
             (requireActivity() as MainActivity).navigateToDetail(fragment)
         }
 
@@ -66,10 +45,17 @@ class CatalogFragment : Fragment(R.layout.fragment_catalog) {
         }
     }
 
-    private fun setupItems(items: List<Product>) {
-        adapter.updateList(items)
-        val empty = items.isEmpty()
-        binding.rvProducts.visibility = if (empty) View.GONE  else View.VISIBLE
+    private fun loadProducts() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            val isAdmin = requireActivity().intent.getBooleanExtra("IS_ADMIN", false)
+            val products = if(isAdmin) repo.getAllProducts() else repo.getAvailableProducts()
+
+            adapter.updateList(products)
+
+            val empty = products.isEmpty()
+            binding.rvProducts.visibility = if(empty) View.GONE else View.VISIBLE
+            binding.llEmpty.visibility = if(empty) View.VISIBLE else View.GONE
+        }
     }
 
     override fun onDestroyView() {

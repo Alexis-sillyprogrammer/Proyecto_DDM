@@ -7,15 +7,21 @@ import android.app.Activity
 import android.content.Intent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
+import com.example.proyecto_ddm.MainActivity
 import com.example.proyecto_ddm.R
+import com.example.proyecto_ddm.database.GameVaultRepository
 import com.example.proyecto_ddm.databinding.FragmentAddProductBinding
 import com.google.android.material.snackbar.Snackbar
+import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
 
 class AddProductFragment : Fragment(R.layout.fragment_add_product) {
     private var _binding: FragmentAddProductBinding? = null
     private val binding get() = _binding!!
+    private lateinit var repo: GameVaultRepository
+    private var adminId: Int = -1
     private var stockActual = 1
     private var imageUri: Uri? = null
     private var imagePath: String? = null
@@ -31,6 +37,8 @@ class AddProductFragment : Fragment(R.layout.fragment_add_product) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         _binding = FragmentAddProductBinding.bind(view)
+        repo = GameVaultRepository(requireContext())
+        adminId = (requireActivity() as MainActivity).userId
 
         setupStock()
         setupImagePicker()
@@ -81,7 +89,7 @@ class AddProductFragment : Fragment(R.layout.fragment_add_product) {
     }
 
     private fun cleanImage() {
-        imagePath = null
+        imageUri = null
         imagePath = null
         binding.ivImagePreview.setImageURI(null)
         binding.ivImagePreview.visibility = View.GONE
@@ -99,8 +107,8 @@ class AddProductFragment : Fragment(R.layout.fragment_add_product) {
             FileOutputStream(file).use { out ->
                 inputStream.copyTo(out)
             }
-            inputStream.close()
 
+            inputStream.close()
             file.absolutePath
         } catch (e: Exception) {
             null
@@ -109,8 +117,7 @@ class AddProductFragment : Fragment(R.layout.fragment_add_product) {
 
     private fun setupButtons() {
         binding.btnSave.setOnClickListener {
-            if(validateForm())
-                saveProduct()
+            if(validateForm()) saveProduct()
         }
 
         binding.btnCancel.setOnClickListener {
@@ -196,20 +203,41 @@ class AddProductFragment : Fragment(R.layout.fragment_add_product) {
     private fun saveProduct() {
         val name = binding.etName.text.toString().trim()
         val description = binding.etDescription.text.toString().trim()
-        val price = binding.etPrice.text.toString().trim().toDouble()
-        val category = getCategory()
+        val price = binding.etPrice.text.toString().trim().toFloat()
+        val categoryId = when(binding.chipGroupCategory.checkedChipId) {
+            R.id.chipConsole -> 2
+            R.id.chipAccessory -> 3
+            else -> 1
+        }
 
-        imagePath = imageUri?.let { copyImageAtStorage(it) }
+        binding.btnSave.isEnabled = false
 
-        showSnackbar("Producto \"$name\" guardado correctamente")
-        cleanForm()
-    }
+        viewLifecycleOwner.lifecycleScope.launch {
+            val isAdmin = repo.isAdmin(adminId)
+            if(isAdmin) {
+                showSnackbar("Error: No tienes permisos de administrador para realizar esta acción.")
+                binding.btnSave.isEnabled = true
+                return@launch
+            }
 
-    private fun getCategory(): String {
-        return when(binding.chipGroupCategory.checkedChipId) {
-            R.id.chipConsole -> "consola"
-            R.id.chipAccessory -> "accesorio"
-            else -> "videojuego"
+            imagePath = imageUri?.let { copyImageAtStorage(it) }
+
+            val id = repo.insertProduct(
+                name = name,
+                categoryId = categoryId,
+                description = description,
+                price = price,
+                stock = stockActual,
+                imgPath = imagePath,
+                adminId = adminId
+            )
+
+            if(id > 0) {
+                showSnackbar("Producto \"$name\" guardado correctamente")
+                cleanForm()
+            } else showSnackbar("Error al guardar el producto")
+
+            binding.btnSave.isEnabled = true
         }
     }
 

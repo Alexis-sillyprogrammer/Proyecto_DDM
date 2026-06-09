@@ -19,6 +19,7 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
     private var isAdmin: Boolean = false
+    var userId: Int = -1
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -31,9 +32,10 @@ class MainActivity : AppCompatActivity() {
             insets
         }
 
-        isAdmin = intent.getBooleanExtra("IS_ADMIN", true)
+        isAdmin = intent.getBooleanExtra("IS_ADMIN", false)
+        userId = intent.getIntExtra("USER_ID", -1)
 
-        if (isAdmin) setupAdminNav()
+        if(isAdmin) setupAdminNav()
         else setupClientNav()
 
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
@@ -59,9 +61,7 @@ class MainActivity : AppCompatActivity() {
         if (isAdmin) {
             binding.bottomAppBar.visibility = View.VISIBLE
             binding.fab.visibility = View.VISIBLE
-        } else {
-            binding.bottomNavigationClient.visibility = View.VISIBLE
-        }
+        } else binding.bottomNavigationClient.visibility = View.VISIBLE
     }
 
     fun replaceFragment(fragment: Fragment) {
