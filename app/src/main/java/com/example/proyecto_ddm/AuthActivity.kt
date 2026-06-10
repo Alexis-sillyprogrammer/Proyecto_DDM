@@ -1,5 +1,7 @@
 package com.example.proyecto_ddm
 
+import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
@@ -11,6 +13,20 @@ class AuthActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_auth)
+
+        val sharedPref = getSharedPreferences("GameVaultPrefs", Context.MODE_PRIVATE)
+        val isLoggedIn = sharedPref.getBoolean("PREF_IS_LOGGED_IN", false)
+
+        if(isLoggedIn) {
+            val intent = Intent(this, MainActivity::class.java).apply {
+                putExtra("USER_ID", sharedPref.getInt("PREF_USER_ID", -1))
+                putExtra("IS_ADMIN", sharedPref.getBoolean("PREF_IS_ADMIN", false))
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            }
+            startActivity(intent)
+            finish()
+            return
+        }
 
         if (savedInstanceState == null) {
             navigateTo(LoginFragment(), addToBackStack = false)

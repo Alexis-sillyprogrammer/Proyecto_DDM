@@ -7,66 +7,46 @@ import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.proyecto_ddm.R
 import com.example.proyecto_ddm.adapters.CartAdapter
+import com.example.proyecto_ddm.database.GameVaultRepository
 import com.example.proyecto_ddm.databinding.FragmentCartBinding
 import com.example.proyecto_ddm.models.CartItem
 import com.example.proyecto_ddm.models.Category
 import com.example.proyecto_ddm.models.Product
 import com.google.android.material.snackbar.Snackbar
+import kotlinx.coroutines.launch
 import java.util.Locale
 
 class CartFragment : Fragment(R.layout.fragment_cart) {
-    private lateinit var adapter: CartAdapter
     private var _binding: FragmentCartBinding? = null
     private val binding get() = _binding!!
-    private val exampleItems = mutableListOf(
-        CartItem(
-            product = Product(
-                id = 1,
-                name = "The Legend of Zelda",
-                category = Category(1, "Videojuego"),
-                description = "Aventura de acción en mundo abierto.",
-                price = 1299.00f
-            ),
-            quantity = 1
-        ),
-        CartItem(
-            product = Product(
-                id = 2,
-                name = "PlayStation 5",
-                category = Category(2, "Consola"),
-                description = "Consola de última generación de Sony.",
-                price = 12999.00f
-            ),
-            quantity = 1
-        ),
-        CartItem(
-            product = Product(
-                id = 3,
-                name = "Control DualSense",
-                category = Category(3, "Accesorio"),
-                description = "Control inalámbrico para PS5.",
-                price = 1599.00f
-            ),
-            quantity = 2
-        )
-    )
+    private lateinit var adapter: CartAdapter
+    private lateinit var repo: GameVaultRepository
+    private var userId: Int = -1
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         _binding = FragmentCartBinding.bind(view)
+        repo = GameVaultRepository(requireContext())
+        userId = requireActivity().intent.getIntExtra("USER_ID", -1)
 
         setupRecyclerView()
-        updateTotals()
         setupButtons()
+        loadCart()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if(::adapter.isInitialized) loadCart()
     }
 
     private fun setupRecyclerView() {
         adapter = CartAdapter(
-            items = exampleItems,
-            onQuantityChanged = { _, _ -> updateTotals() },
+            items = mutableListOf(),
+            onQuantityChanged = { item, newQty -> onQtyChanged(item, newQty) },
             onDeleteItem = { item -> confirmDeleteItem(item) }
         )
 
@@ -75,8 +55,24 @@ class CartFragment : Fragment(R.layout.fragment_cart) {
             adapter = this@CartFragment.adapter
             setHasFixedSize(false)
         }
+    }
 
-        updateEmptyState()
+    private fun loadCart() {
+        if (userId == -1) return
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            val items = repo.getCartItems(userId)
+            adapter.updateList(items)
+            updateTotals()
+            updateEmptyState()
+        }
+    }
+
+    private fun onQtyChanged(item: CartItem, newQty: Int) {
+        viewLifecycleOwner.lifecycleScope.launch {
+            repo.updateCartItemQty(userId, item.product.id, newQty)
+            updateTotals()
+        }
     }
 
     private fun setupButtons() {
@@ -94,112 +90,94 @@ class CartFragment : Fragment(R.layout.fragment_cart) {
     private fun showConfirmationAlert() {
         AlertDialog.Builder(requireContext())
             .setTitle("Confirmar pedido")
-            .setMessage("¿Estás seguro de que deseas confirmar tu pedido? A continuación elige la fecha y hora de recogida.")
-            .setPositiveButton("Sí, continuar") { dialog, _ ->
-                dialog.dismiss()
-                showDatePicker()
-            }
-            .setNegativeButton("Cancelar") { dialog, _ ->
-                dialog.dismiss()
-            }
+            .setMessage("¿Estás seguro? A continuación elige la fecha y hora de recogida.")
+            .setPositiveButton("Sí, continuar") { d, _ -> d.dismiss(); showDatePicker() }
+            .setNegativeButton("Cancelar") { d, _ -> d.dismiss() }
             .show()
     }
 
     private fun showDatePicker() {
         val today = Calendar.getInstance()
 
-        DatePickerDialog(
-            requireContext(),
-            { _, year, month, day ->
-                val date = "$day/${month + 1}/$year"
-                showTimePicker(date)
-            },
-            today.get(Calendar.YEAR),
-            today.get(Calendar.MONTH),
+        DatePickerDialog(requireContext(), { _, year, month, day ->
+                showTimePicker("$day/${month + 1}/$year")
+            }, today.get(Calendar.YEAR), today.get(Calendar.MONTH),
             today.get(Calendar.DAY_OF_MONTH)
-        ).apply {
-            datePicker.minDate = today.timeInMillis
-            show()
-        }
+        ).apply { datePicker.minDate = today.timeInMillis; show() }
     }
 
     private fun showTimePicker(date: String) {
         val now = Calendar.getInstance()
-
-        TimePickerDialog(
-            requireContext(),
-            { _, hour, minutes ->
-                val hour12 = when {
-                    hour == 0 -> 12
-                    hour > 12 -> hour - 12
-                    else -> hour
-                }
-
-                val amPm = if(hour >= 12) "PM" else "AM"
-                val minFmt = String.format(Locale.US, "%02d", minutes)
-                val hourFmt = "$hour12:$minFmt $amPm"
-
-                processOrder(date, hourFmt)
-            },
-            now.get(Calendar.HOUR_OF_DAY),
-            now.get(Calendar.MINUTE),
-            false
-        ).show()
+        TimePickerDialog(requireContext(), { _, h, min ->
+            val h12   = when { h == 0 -> 12; h > 12 -> h - 12; else -> h }
+            val amPm  = if (h >= 12) "PM" else "AM"
+            val fmt   = String.format(Locale.US, "%02d", min)
+            processOrder(date, "$h12:$fmt $amPm")
+        }, now.get(Calendar.HOUR_OF_DAY), now.get(Calendar.MINUTE), false).show()
     }
 
     private fun processOrder(date: String, hour: String) {
         val dateHour = "$date a las $hour"
 
-        adapter.emptyCart()
-        updateTotals()
-        updateEmptyState()
+        viewLifecycleOwner.lifecycleScope.launch {
+            val success = repo.completeCart(userId, dateHour)
 
-        AlertDialog.Builder(requireContext())
-            .setTitle("¡Pedido confirmado!")
-            .setMessage("Tu pedido será recogido el $dateHour.\n\nPuedes ver tu compra en «Compras».")
-            .setPositiveButton("Ver mis compras") { dialog, _ ->
-                dialog.dismiss()
-                requireActivity().supportFragmentManager.beginTransaction()
-                    .replace(R.id.frame_layout, PurchasesFragment())
-                    .addToBackStack(null)
-                    .commit()
+            if(!success) {
+                showSnackbar("Error al procesar el pedido")
+                return@launch
             }
-            .setNegativeButton("Cerrar") { dialog, _ ->
-                dialog.dismiss()
-            }
-            .show()
+
+            adapter.emptyCart()
+            updateTotals()
+            updateEmptyState()
+
+            AlertDialog.Builder(requireContext())
+                .setTitle("¡Pedido confirmado!")
+                .setMessage("Tu pedido será recogido el $dateHour.\n\nPuedes verlo en «Mis Compras».")
+                .setPositiveButton("Ver mis compras") { d, _ ->
+                    d.dismiss()
+                    requireActivity().supportFragmentManager.beginTransaction()
+                        .replace(R.id.frame_layout, PurchasesFragment())
+                        .commit()
+                }
+                .setNegativeButton("Cerrar") { d, _ -> d.dismiss() }
+                .show()
+        }
     }
 
     private fun confirmDeleteItem(item: CartItem) {
         AlertDialog.Builder(requireContext())
             .setTitle("Eliminar producto")
-            .setMessage("¿Deseas quitar «${item.product.name}» del carrito?")
-            .setPositiveButton("Eliminar") { dialog, _ ->
-                dialog.dismiss()
-                adapter.deleteItem(item)
-                updateTotals()
-                updateEmptyState()
+            .setMessage("¿Quitar «${item.product.name}» del carrito?")
+            .setPositiveButton("Eliminar") { d, _ ->
+                d.dismiss()
+                viewLifecycleOwner.lifecycleScope.launch {
+                    repo.removeFromCart(userId, item.product.id)
+                    adapter.deleteItem(item)
+                    updateTotals()
+                    updateEmptyState()
+                }
             }
-            .setNegativeButton("Cancelar") { dialog, _ ->
-                dialog.dismiss()
-            }
+            .setNegativeButton("Cancelar") { d, _ -> d.dismiss() }
             .show()
     }
 
     private fun confirmEmptyCart() {
         AlertDialog.Builder(requireContext())
             .setTitle("Vaciar carrito")
-            .setMessage("¿Estás seguro de que deseas eliminar todos los productos del carrito?")
-            .setPositiveButton("Vaciar") { dialog, _ ->
-                dialog.dismiss()
-                adapter.emptyCart()
-                updateTotals()
-                updateEmptyState()
+            .setMessage("¿Eliminar todos los productos del carrito?")
+            .setPositiveButton("Vaciar") { d, _ ->
+                d.dismiss()
+                viewLifecycleOwner.lifecycleScope.launch {
+                    repo.clearCart(userId)
+                    adapter.emptyCart()
+                    updateTotals()
+                    updateEmptyState()
+                }
             }
-            .setNegativeButton("Cancelar") { dialog, _ ->
-                dialog.dismiss()
-            }
+            .setNegativeButton("Cancelar") { d, _ -> d.dismiss() }
             .show()
+
     }
 
     private fun updateTotals() {
@@ -220,11 +198,8 @@ class CartFragment : Fragment(R.layout.fragment_cart) {
         binding.btnDeleteCart.isEnabled = !empty
     }
 
-    private fun showSnackbar(msg: String) {
-        Snackbar
-            .make(binding.root, msg, Snackbar.LENGTH_SHORT)
-            .show()
-    }
+    private fun showSnackbar(msg: String) =
+        Snackbar.make(binding.root, msg, Snackbar.LENGTH_SHORT).show()
 
     override fun onDestroyView() {
         super.onDestroyView()

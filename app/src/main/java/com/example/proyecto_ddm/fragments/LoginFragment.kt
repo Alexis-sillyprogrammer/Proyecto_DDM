@@ -1,5 +1,6 @@
 package com.example.proyecto_ddm.fragments
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
@@ -10,6 +11,7 @@ import com.example.proyecto_ddm.MainActivity
 import com.example.proyecto_ddm.R
 import com.example.proyecto_ddm.database.GameVaultRepository
 import com.example.proyecto_ddm.databinding.FragmentLoginBinding
+import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.launch
 
 class LoginFragment : Fragment(R.layout.fragment_login) {
@@ -60,27 +62,42 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
     private fun login() {
         val email = binding.etEmail.text.toString().trim()
         val password = binding.etPassword.text.toString().trim()
-
         binding.btnLogin.isEnabled = false
 
         viewLifecycleOwner.lifecycleScope.launch {
-            val user = repo.login(email, password)
+            try {
+                val user = repo.login(email, password)
 
-            if(user == null) {
-                binding.tilEmail.error = null
-                binding.tilPassword.error = "Correo o contraseña incorrectos"
-                binding.btnLogin.isEnabled = true
-                return@launch
+                if(user == null) {
+                    binding.tilEmail.error = null
+                    binding.tilPassword.error = "Correo o contraseña incorrectos"
+                    return@launch
+                }
+
+                val sharedPref = requireContext().getSharedPreferences("GameVaultPrefs", Context.MODE_PRIVATE)
+                sharedPref.edit().apply {
+                    putInt("PREF_USER_ID", user.user_id)
+                    putBoolean("PREF_IS_ADMIN", user.rol_id == 1)
+                    putBoolean("PREF_IS_LOGGED_IN", true)
+                    apply()
+                }
+
+                val intent = Intent(requireContext(), MainActivity::class.java).apply {
+                    putExtra("IS_ADMIN", user.rol_id == 1)
+                    putExtra("USER_ID", user.user_id)
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                }
+
+                startActivity(intent)
+            } catch(e: Exception) {
+                Snackbar.make(
+                    binding.root,
+                    "Error de conexión local. Reinicia la app.",
+                    Snackbar.LENGTH_LONG
+                ).show()
+            } finally {
+                if(_binding != null) binding.btnLogin.isEnabled = true
             }
-
-            val isAdmin = user.rol_id == 1
-            val intent = Intent(requireContext(), MainActivity::class.java).apply {
-                putExtra("IS_ADMIN", isAdmin)
-                putExtra("USER_ID", user.user_id)
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            }
-
-            startActivity(intent)
         }
     }
 

@@ -27,6 +27,7 @@
 
     <string name="btn_save">Guardar</string>
     <string name="btn_cancel">Cancelar</string>
+    <string name="btn_logout">Cerrar sesión</string>
 
     <string name="label_subtotal">Subtotal</string>
     <string name="label_iva">IVA (16%)</string>

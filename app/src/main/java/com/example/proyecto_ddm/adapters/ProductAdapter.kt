@@ -17,7 +17,8 @@ import java.util.Locale
 
 class ProductAdapter(
     private var productList: MutableList<Product>,
-    private val onViewItem: (Product) -> Unit
+    private val onViewItem: (Product) -> Unit,
+    private val onAddToCart: (Product) -> Unit
 ) : RecyclerView.Adapter<ProductAdapter.ProductViewHolder>() {
     inner class ProductViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val tvProductName: TextView = itemView.findViewById(R.id.tvProductName)
@@ -52,6 +53,10 @@ class ProductAdapter(
 
                 ivProduct.setImageResource(iconRes)
                 ivProduct.clipToOutline = false
+            }
+
+            btnAdd.setOnClickListener {
+                onAddToCart(product)
             }
 
             itemView.setOnClickListener {
