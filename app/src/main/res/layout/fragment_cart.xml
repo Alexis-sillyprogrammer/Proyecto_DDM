@@ -16,7 +16,7 @@
         android:paddingBottom="8dp"
         android:clipToPadding="false"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/cardResumen"
+        app:layout_constraintBottom_toTopOf="@id/cardFavorites"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
@@ -48,6 +48,52 @@
             android:textSize="15sp" />
 
     </LinearLayout>
+
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cardFavorites"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:cardBackgroundColor="@color/gv_surface"
+        app:cardCornerRadius="0dp"
+        app:cardElevation="0dp"
+        app:strokeColor="#14FFFFFF"
+        app:strokeWidth="1dp"
+        app:layout_constraintTop_toBottomOf="@id/rvCart"
+        app:layout_constraintBottom_toTopOf="@id/cardResumen"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingTop="12dp"
+            android:paddingBottom="8dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginBottom="8dp"
+                android:text="Tus favoritos"
+                android:textColor="@color/gv_accent"
+                android:textSize="11sp"
+                android:textAllCaps="true"
+                android:letterSpacing="0.1" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvFavorites"
+                android:layout_width="match_parent"
+                android:layout_height="100dp"
+                android:orientation="horizontal"
+                android:paddingHorizontal="12dp"
+                android:clipToPadding="false"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+
+        </LinearLayout>
+
+    </com.google.android.material.card.MaterialCardView>
 
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/cardResumen"

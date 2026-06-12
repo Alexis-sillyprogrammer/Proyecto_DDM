@@ -10,6 +10,7 @@ import com.example.proyecto_ddm.R
 import com.example.proyecto_ddm.adapters.ProductAdapter
 import com.example.proyecto_ddm.database.GameVaultRepository
 import com.example.proyecto_ddm.databinding.FragmentCatalogBinding
+import com.example.proyecto_ddm.models.Product
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.launch
 
@@ -45,13 +46,11 @@ class CatalogFragment : Fragment(R.layout.fragment_catalog) {
                 (requireActivity() as MainActivity).navigateToDetail(fragment)
             },
             onAddToCart = { product ->
-                if(isAdmin)
-                    Snackbar.make(
-                        binding.root,
-                        "Los administradores no pueden agregar productos al carrito",
-                        Snackbar.LENGTH_SHORT
-                    ).show()
+                if(isAdmin) showSnackbar("Los administradores no pueden agregar al carrito")
                 else addToCart(product)
+            },
+            onToggleFavorites = { product, newState ->
+                toggleFavorite(product, newState)
             }
         )
 
@@ -65,7 +64,9 @@ class CatalogFragment : Fragment(R.layout.fragment_catalog) {
     private fun loadProducts() {
         viewLifecycleOwner.lifecycleScope.launch {
             val products = if(isAdmin) repo.getAllProducts() else repo.getAvailableProducts()
+            val favIds = if(userId != -1) repo.getFavoriteProducts(userId).map { it.id }.toSet() else emptySet()
             adapter.updateList(products)
+            adapter.updateFavorites(favIds)
 
             val empty = products.isEmpty()
             binding.rvProducts.visibility = if(empty) View.GONE  else View.VISIBLE
@@ -73,27 +74,31 @@ class CatalogFragment : Fragment(R.layout.fragment_catalog) {
         }
     }
 
-    private fun addToCart(product: com.example.proyecto_ddm.models.Product) {
+    private fun addToCart(product: Product) {
         if(userId == -1) {
-            Snackbar.make(
-                binding.root,
-                "Error de sesión",
-                Snackbar.LENGTH_SHORT
-            ).show()
-
+            showSnackbar("Error de sesión")
             return
         }
 
         viewLifecycleOwner.lifecycleScope.launch {
             val success = repo.addToCart(userId, product)
-            val msg = if(success) "«${product.name}» agregado al carrito" else "Error al agregar al carrito"
-            Snackbar.make(
-                binding.root,
-                msg,
-                Snackbar.LENGTH_SHORT
-            ).show()
+            showSnackbar(if(success) "«${product.name}» agregado al carrito"
+            else "Error al agregar al carrito")
         }
     }
+
+    private fun toggleFavorite(product: Product, newState: Boolean) {
+        if (userId == -1) return
+        viewLifecycleOwner.lifecycleScope.launch {
+            repo.toggleFavorite(userId, product.id)
+            val msg = if(newState) "«${product.name}» agregado a favoritos"
+            else "«${product.name}» eliminado de favoritos"
+            showSnackbar(msg)
+        }
+    }
+
+    private fun showSnackbar(msg: String) =
+        Snackbar.make(binding.root, msg, Snackbar.LENGTH_SHORT).show()
 
     override fun onDestroyView() {
         super.onDestroyView()

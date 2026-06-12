@@ -21,5 +21,6 @@ data class UserEntity(
     val name: String,
     val email: String,
     val password: String,
-    val rol_id: Int
+    val rol_id: Int,
+    val img_path: String? = null
 )

@@ -11,6 +11,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.proyecto_ddm.R
 import com.example.proyecto_ddm.adapters.CartAdapter
+import com.example.proyecto_ddm.adapters.FavoriteAdapter
 import com.example.proyecto_ddm.database.GameVaultRepository
 import com.example.proyecto_ddm.databinding.FragmentCartBinding
 import com.example.proyecto_ddm.models.CartItem
@@ -23,7 +24,8 @@ import java.util.Locale
 class CartFragment : Fragment(R.layout.fragment_cart) {
     private var _binding: FragmentCartBinding? = null
     private val binding get() = _binding!!
-    private lateinit var adapter: CartAdapter
+    private lateinit var cartAdapter: CartAdapter
+    private lateinit var favoriteAdapter: FavoriteAdapter
     private lateinit var repo: GameVaultRepository
     private var userId: Int = -1
 
@@ -34,17 +36,18 @@ class CartFragment : Fragment(R.layout.fragment_cart) {
         userId = requireActivity().intent.getIntExtra("USER_ID", -1)
 
         setupRecyclerView()
+        setupFavorites()
         setupButtons()
         loadCart()
     }
 
     override fun onResume() {
         super.onResume()
-        if(::adapter.isInitialized) loadCart()
+        if(::cartAdapter.isInitialized) loadCart()
     }
 
     private fun setupRecyclerView() {
-        adapter = CartAdapter(
+        cartAdapter = CartAdapter(
             items = mutableListOf(),
             onQuantityChanged = { item, newQty -> onQtyChanged(item, newQty) },
             onDeleteItem = { item -> confirmDeleteItem(item) }
@@ -52,8 +55,24 @@ class CartFragment : Fragment(R.layout.fragment_cart) {
 
         binding.rvCart.apply {
             layoutManager = LinearLayoutManager(requireContext())
-            adapter = this@CartFragment.adapter
+            adapter = this@CartFragment.cartAdapter
             setHasFixedSize(false)
+        }
+    }
+
+    private fun setupFavorites() {
+        favoriteAdapter = FavoriteAdapter(mutableListOf()) { product ->
+            addFavoriteToCart(product)
+        }
+
+        binding.rvFavorites.apply {
+            layoutManager = androidx.recyclerview.widget.LinearLayoutManager(
+                requireContext(),
+                androidx.recyclerview.widget.LinearLayoutManager.HORIZONTAL,
+                false
+            )
+
+            adapter = favoriteAdapter
         }
     }
 
@@ -62,9 +81,28 @@ class CartFragment : Fragment(R.layout.fragment_cart) {
 
         viewLifecycleOwner.lifecycleScope.launch {
             val items = repo.getCartItems(userId)
-            adapter.updateList(items)
+            cartAdapter.updateList(items)
             updateTotals()
             updateEmptyState()
+            loadFavorites()
+        }
+    }
+
+    private fun loadFavorites() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            val favs = repo.getFavoriteProducts(userId)
+            favoriteAdapter.updateList(favs)
+            binding.cardFavorites.visibility = if (favs.isEmpty()) View.GONE else View.VISIBLE
+        }
+    }
+
+    private fun addFavoriteToCart(product: Product) {
+        viewLifecycleOwner.lifecycleScope.launch {
+            val success = repo.addToCart(userId, product)
+            if (success) {
+                loadCart()
+                showSnackbar("«${product.name}» agregado al carrito")
+            }
         }
     }
 
@@ -77,12 +115,12 @@ class CartFragment : Fragment(R.layout.fragment_cart) {
 
     private fun setupButtons() {
         binding.btnPrcessOrder.setOnClickListener {
-            if(adapter.getItems().isEmpty()) showSnackbar("Tu carrito está vacío")
+            if(cartAdapter.getItems().isEmpty()) showSnackbar("Tu carrito está vacío")
             else showConfirmationAlert()
         }
 
         binding.btnDeleteCart.setOnClickListener {
-            if(adapter.getItems().isEmpty()) showSnackbar("El carrito ya está vacío")
+            if(cartAdapter.getItems().isEmpty()) showSnackbar("El carrito ya está vacío")
             else confirmEmptyCart()
         }
     }
@@ -127,7 +165,7 @@ class CartFragment : Fragment(R.layout.fragment_cart) {
                 return@launch
             }
 
-            adapter.emptyCart()
+            cartAdapter.emptyCart()
             updateTotals()
             updateEmptyState()
 
@@ -153,7 +191,7 @@ class CartFragment : Fragment(R.layout.fragment_cart) {
                 d.dismiss()
                 viewLifecycleOwner.lifecycleScope.launch {
                     repo.removeFromCart(userId, item.product.id)
-                    adapter.deleteItem(item)
+                    cartAdapter.deleteItem(item)
                     updateTotals()
                     updateEmptyState()
                 }
@@ -170,7 +208,7 @@ class CartFragment : Fragment(R.layout.fragment_cart) {
                 d.dismiss()
                 viewLifecycleOwner.lifecycleScope.launch {
                     repo.clearCart(userId)
-                    adapter.emptyCart()
+                    cartAdapter.emptyCart()
                     updateTotals()
                     updateEmptyState()
                 }
@@ -181,7 +219,7 @@ class CartFragment : Fragment(R.layout.fragment_cart) {
     }
 
     private fun updateTotals() {
-        val subtotal = adapter.getItems().sumOf { it.subtotal.toDouble() }
+        val subtotal = cartAdapter.getItems().sumOf { it.subtotal.toDouble() }
         val iva = subtotal * 0.16
         val total = subtotal + iva
 
@@ -191,7 +229,7 @@ class CartFragment : Fragment(R.layout.fragment_cart) {
     }
 
     private fun updateEmptyState() {
-        val empty = adapter.getItems().isEmpty()
+        val empty = cartAdapter.getItems().isEmpty()
         binding.rvCart.visibility = if (empty) View.GONE else View.VISIBLE
         binding.llEmpty.visibility = if (empty) View.VISIBLE else View.GONE
         binding.btnPrcessOrder.isEnabled = !empty

@@ -214,7 +214,7 @@ class AddProductFragment : Fragment(R.layout.fragment_add_product) {
 
         viewLifecycleOwner.lifecycleScope.launch {
             val isAdmin = repo.isAdmin(adminId)
-            if(isAdmin) {
+            if(!isAdmin) {
                 showSnackbar("Error: No tienes permisos de administrador para realizar esta acción.")
                 binding.btnSave.isEnabled = true
                 return@launch

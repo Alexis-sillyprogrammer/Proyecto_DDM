@@ -7,12 +7,14 @@ import androidx.room.RoomDatabase
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.example.proyecto_ddm.database.dao.CartDao
 import com.example.proyecto_ddm.database.dao.CategoryDao
+import com.example.proyecto_ddm.database.dao.FavoriteDao
 import com.example.proyecto_ddm.database.dao.ProductDao
 import com.example.proyecto_ddm.database.dao.StateDao
 import com.example.proyecto_ddm.database.dao.UserDao
 import com.example.proyecto_ddm.database.entities.CartDetailEntity
 import com.example.proyecto_ddm.database.entities.CartEntity
 import com.example.proyecto_ddm.database.entities.CategoryEntity
+import com.example.proyecto_ddm.database.entities.FavoriteEntity
 import com.example.proyecto_ddm.database.entities.ProductEntity
 import com.example.proyecto_ddm.database.entities.RoleEntity
 import com.example.proyecto_ddm.database.entities.StateEntity
@@ -29,9 +31,10 @@ import kotlinx.coroutines.launch
         CategoryEntity::class,
         ProductEntity::class,
         CartEntity::class,
-        CartDetailEntity::class
+        CartDetailEntity::class,
+        FavoriteEntity::class
     ],
-    version = 1,
+    version = 3,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -40,6 +43,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun categoryDao(): CategoryDao
     abstract fun stateDao(): StateDao
     abstract fun cartDao(): CartDao
+    abstract fun favoriteDao(): FavoriteDao
 
     companion object {
         @Volatile

@@ -3,6 +3,7 @@ package com.example.proyecto_ddm.database
 import android.content.Context
 import com.example.proyecto_ddm.database.entities.CartDetailEntity
 import com.example.proyecto_ddm.database.entities.CartEntity
+import com.example.proyecto_ddm.database.entities.FavoriteEntity
 import com.example.proyecto_ddm.database.entities.ProductEntity
 import com.example.proyecto_ddm.database.entities.StateEntity
 import com.example.proyecto_ddm.database.entities.UserEntity
@@ -12,6 +13,7 @@ import com.example.proyecto_ddm.models.Category
 import com.example.proyecto_ddm.models.FlatPurchaseItem
 import com.example.proyecto_ddm.models.Product
 import com.example.proyecto_ddm.models.State
+import com.example.proyecto_ddm.models.UserStats
 
 class GameVaultRepository(context: Context) {
     private val db = AppDatabase.getDatabase(context)
@@ -20,6 +22,7 @@ class GameVaultRepository(context: Context) {
     private val categoryDao = db.categoryDao()
     private val stateDao = db.stateDao()
     private val cartDao = db.cartDao()
+    private val favoriteDao = db.favoriteDao()
 
     suspend fun login(email: String, password: String): UserEntity? = userDao.login(email, password)
     suspend fun register(name: String, email: String, password: String): Long {
@@ -41,10 +44,19 @@ class GameVaultRepository(context: Context) {
     suspend fun getUserById(id: Int): UserEntity? = userDao.getById(id)
     suspend fun getUserByEmail(email: String): UserEntity? = userDao.getByEmail(email)
     suspend fun updatePasswordById(id: Int, newPassword: String) = userDao.updatePasswordById(id, newPassword)
-    suspend fun updateProfile(id: Int, name: String, email: String) = userDao.updateProfile(id, name, email)
+    suspend fun updateProfile(id: Int, name: String, email: String, imgPath: String?) =
+        userDao.updateProfile(id, name, email, imgPath)
+
     suspend fun isAdmin(userId: Int): Boolean {
         val user = userDao.getById(userId) ?: return false
         return user.rol_id == 1
+    }
+
+    suspend fun getUserStats(userId: Int): UserStats {
+        val purchases = cartDao.getCompletedCarts(userId).size
+        val cartItems = getCartItems(userId).size
+        val favorites = favoriteDao.countByUser(userId)
+        return UserStats(purchases, cartItems, favorites)
     }
 
     suspend fun insertProduct(
@@ -93,6 +105,21 @@ class GameVaultRepository(context: Context) {
         price = price,
         img = img_path
     )
+
+    suspend fun toggleFavorite(userId: Int, productId: Int): Boolean {
+        val isFav = favoriteDao.isFavorite(userId, productId)
+        if(isFav) favoriteDao.delete(userId, productId)
+        else favoriteDao.insert(FavoriteEntity(userId, productId))
+        return !isFav
+    }
+
+    suspend fun isFavorite(userId: Int, productId: Int): Boolean =
+        favoriteDao.isFavorite(userId, productId)
+
+    suspend fun getFavoriteProducts(userId: Int): List<Product> {
+        val favorites = favoriteDao.getByUser(userId)
+        return favorites.mapNotNull { fav -> getProductById(fav.product_id) }
+    }
 
     suspend fun getOrCreateActiveCart(userId: Int): CartEntity {
         val existing = cartDao.getActiveCart(userId)

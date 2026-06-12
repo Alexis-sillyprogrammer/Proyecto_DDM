@@ -3,6 +3,8 @@ package com.example.proyecto_ddm.fragments
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
 import android.view.View
@@ -65,10 +67,34 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
                     binding.tvUsername.text = user.name
                     binding.etUserFullName.setText(user.name)
                     binding.etUserEmail.setText(user.email)
-                    binding.tvUserRole.text = if (user.rol_id == 1) "Administrador" else "Usuario"
-                } else Snackbar.make(binding.root, "No se encontró el usuario", Snackbar.LENGTH_SHORT).show()
+                    binding.tvUserRole.text = if(user.rol_id == 1) "Administrador" else "Usuario"
+
+                    if(!user.img_path.isNullOrEmpty()) {
+                        val imgFile = File(user.img_path)
+                        if(imgFile.exists()) {
+                            val bitmap = BitmapFactory.decodeFile(imgFile.absolutePath)
+                            if(bitmap != null) {
+                                imagePath = user.img_path
+                                renderBitmapToImageView(bitmap)
+                            }
+                        }
+                    }
+
+                    val stats = repo.getUserStats(userId)
+                    binding.tvStatPurchases.text = stats.purchases.toString()
+                    binding.tvStatCart.text = stats.cartItems.toString()
+                    binding.tvStatFavorites.text = stats.favorites.toString()
+                } else Snackbar.make(
+                    binding.root,
+                    "No se encontró el usuario",
+                    Snackbar.LENGTH_SHORT
+                ).show()
             } catch(e: Exception) {
-                Snackbar.make(binding.root, "Error al cargar perfil desde la base de datos", Snackbar.LENGTH_SHORT).show()
+                Snackbar.make(
+                    binding.root,
+                    "Error al cargar perfil desde la base de datos",
+                    Snackbar.LENGTH_SHORT
+                ).show()
             }
         }
     }
@@ -115,6 +141,10 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
             return
         }
 
+        renderBitmapToImageView(bitmap)
+    }
+
+    private fun renderBitmapToImageView(bitmap: Bitmap) {
         binding.avatarView.visibility = View.GONE
         binding.ivProfilePhoto.visibility = View.VISIBLE
         binding.ivProfilePhoto.setImageBitmap(bitmap)
@@ -140,6 +170,11 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
     }
 
     private fun deletePhoto() {
+        if (!imagePath.isNullOrEmpty()) {
+            val file = File(imagePath!!)
+            if (file.exists()) file.delete()
+        }
+
         imageUri  = null
         imagePath = null
         isPhoto   = false
@@ -196,11 +231,9 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
 
         viewLifecycleOwner.lifecycleScope.launch {
             try {
-                if(imageUri != null) {
-                    imagePath = copyImageAtStorage(imageUri!!)
-                }
+                if(imageUri != null) imagePath = copyImageAtStorage(imageUri!!)
 
-                repo.updateProfile(userId, name, email)
+                repo.updateProfile(userId, name, email, imagePath)
                 binding.tvUsername.text = name
                 if(!isPhoto) binding.avatarView.setName(name)
                 Snackbar.make(
@@ -225,7 +258,7 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
             val inputStream = requireContext().contentResolver.openInputStream(uri) ?: return null
 
             val dir = File(requireContext().filesDir, "product_images").also { it.mkdirs() }
-            val file = File(dir, "img_${System.currentTimeMillis()}.jpg")
+            val file = File(dir, "profile_${userId}.jpg")
 
             FileOutputStream(file).use { out ->
                 inputStream.copyTo(out)

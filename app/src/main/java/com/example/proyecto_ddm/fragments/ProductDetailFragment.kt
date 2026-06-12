@@ -1,9 +1,10 @@
 package com.example.proyecto_ddm.fragments
 
+import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.view.View
+import android.widget.ImageView
 import androidx.core.content.ContextCompat
-import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.example.proyecto_ddm.MainActivity
@@ -12,10 +13,9 @@ import com.example.proyecto_ddm.database.GameVaultRepository
 import com.example.proyecto_ddm.databinding.FragmentProductDetailBinding
 import com.example.proyecto_ddm.models.Cart
 import com.example.proyecto_ddm.models.CartItem
-import com.example.proyecto_ddm.models.Category
 import com.example.proyecto_ddm.models.Product
-import com.example.proyecto_ddm.models.State
 import kotlinx.coroutines.launch
+import java.io.File
 import java.util.Locale
 
 class ProductDetailFragment : Fragment(R.layout.fragment_product_detail) {
@@ -132,10 +132,20 @@ class ProductDetailFragment : Fragment(R.layout.fragment_product_detail) {
         binding.tvDetailDescription.text = product.description
         binding.tvDetailPrice.text = "$${String.format("%,.2f", product.price)}"
 
+        var isImageLoaded = false
         if(!product.img.isNullOrEmpty()) {
-            binding.ivDetailProduct.setImageURI(product.img.toUri())
-            binding.ivDetailProduct.clearColorFilter()
-        } else {
+            val imgFile = File(product.img)
+            if(imgFile.exists()) {
+                val bitmap = BitmapFactory.decodeFile(imgFile.absolutePath)
+                if (bitmap != null) {
+                    binding.ivDetailProduct.setImageBitmap(bitmap)
+                    binding.ivDetailProduct.clearColorFilter()
+                    isImageLoaded = true
+                }
+            }
+        }
+
+        if(!isImageLoaded) {
             val iconRes = when (product.category.name.lowercase(Locale.getDefault())) {
                 "videojuego" -> R.drawable.ic_outline_game_24
                 "consola" -> R.drawable.ic_outline_console_24
@@ -144,6 +154,8 @@ class ProductDetailFragment : Fragment(R.layout.fragment_product_detail) {
             }
 
             binding.ivDetailProduct.setImageResource(iconRes)
+            binding.ivDetailProduct.scaleType = ImageView.ScaleType.FIT_CENTER
+            binding.ivDetailProduct.setColorFilter(ContextCompat.getColor(requireContext(), R.color.gv_icon_inactive))
         }
     }
 
